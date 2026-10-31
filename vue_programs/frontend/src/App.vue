@@ -1,10 +1,12 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useChatStore } from './stores/chat'
+
 
 const chat = useChatStore()
 const question = ref('')
 
+onMounted(() => chat.load())
 async function ask() {
   const q = question.value
   question.value = ''

@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
@@ -18,6 +18,17 @@ export const useChatStore = defineStore('chat', () => {
 //       isSending.value = false
 //     }
 //   }
+
+    function save() {
+        localStorage.setItem('notesgpt-messages', JSON.stringify(messages.value))
+    }
+
+    function load() {
+        const saved = localStorage.getItem('notesgpt-messages')
+        if (saved) messages.value = JSON.parse(saved)
+    }
+
+    watch(messages, save, { deep: true })
 
     async function send(question) {
         messages.value.push({ role: 'user', content: question })
@@ -55,5 +66,5 @@ export const useChatStore = defineStore('chat', () => {
         }
     }
 
-  return { messages, send, isSending }   // ← 漏 return 也是 undefined
+  return { messages, send, isSending, load }   // ← 漏 return 也是 undefined
 })
