@@ -13,7 +13,7 @@ async function ask() {
 </script>
 
 <template>
-  <div v-if="chat.messages.length === 0" style="color: #999;">
+  <div v-if="chat?.messages.length === 0" style="color: #999;">
     还没有对话，问点什么吧
   </div>
   <div style="padding: 2rem; font-family: sans-serif; max-width: 640px;">
