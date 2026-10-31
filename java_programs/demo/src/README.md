@@ -14,3 +14,5 @@ POST /api/chat　body: {"question":"..."}　→ 纯文本回答
 - [x] W3 同步问答接口
 - [ ] W4 SSE 流式 + RAG 检索接入
 - [ ] W5 Docker + CI
+
+![alt text](image.png)
