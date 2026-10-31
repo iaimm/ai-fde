@@ -1,13 +1,19 @@
 package com.example.demo.controller;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -48,5 +54,59 @@ public class ChatController {
                 .path("choices").get(0)
                 .path("message").path("content")
                 .asText();
+    }
+
+    @GetMapping(path = "/api/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter stream(@RequestParam String question) {
+        SseEmitter emitter = new SseEmitter(300_000L);      // 5分钟超时，长回答够用
+        Thread.startVirtualThread(() -> forwardToLlm(question, emitter));
+        return emitter;
+    }
+
+    private void forwardToLlm(String question, SseEmitter emitter) {
+        try {
+            ObjectNode payload = mapper.createObjectNode();
+            payload.put("model", "kimi-k2.6");
+            ArrayNode messages = payload.putArray("messages");
+            messages.addObject().put("role", "user").put("content", question);
+            payload.put("stream", true);                       // ← 关键：要流式
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(API_URL))
+                    .header("Authorization", "Bearer " + API_KEY)
+                    .header("Content-Type", "application/json")
+                    .version(HttpClient.Version.HTTP_1_1)      // ← SSE 走 HTTP/1.1，避开 h2 兼容坑
+                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(payload)))
+                    .build();
+
+            HttpResponse<java.io.InputStream> resp = client.send(
+                    request, HttpResponse.BodyHandlers.ofInputStream());
+
+            if (resp.statusCode() != 200) {
+                emitter.send("调用失败 " + resp.statusCode());
+                emitter.complete();
+                return;
+            }
+
+            // 逐行读 kimi 的 SSE 流，剥 data: 前缀，转给前端
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(resp.body()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.startsWith("data:")) continue;   // 跳过空行和别的字段
+                    String data = line.substring(5).trim();
+                    if (data.equals("[DONE]")) break;          // ← 结束帧，W1 的老朋友
+                    String delta = mapper.readTree(data)
+                            .path("choices").get(0)
+                            .path("delta").path("content").asText("");
+                    if (!delta.isEmpty()) {
+                        emitter.send(delta);                   // 收到一个字就发一个字
+                    }
+                }
+            }
+            emitter.complete();                                // 流正常结束，关门
+        } catch (Exception e) {
+            emitter.completeWithError(e);                      // 异常也要关门
+        }
     }
 }
