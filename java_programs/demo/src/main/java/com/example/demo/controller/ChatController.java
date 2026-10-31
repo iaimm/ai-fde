@@ -113,7 +113,7 @@ public class ChatController {
                             .path("choices").get(0)
                             .path("delta").path("content").asText("");
                     if (!delta.isEmpty()) {
-                        emitter.send(delta);                   // 收到一个字就发一个字
+                        emitter.send(mapper.writeValueAsString(delta));                   // 收到一个字就发一个字
                     }
                 }
             }
