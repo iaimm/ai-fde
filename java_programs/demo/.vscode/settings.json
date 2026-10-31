@@ -1,0 +1,5 @@
+{
+    "java.configuration.maven.userSettings": "/home/wanfch/.m2/settings.xml",
+    "maven.executable.path": "/mnt/g/data/dev/apache-maven-3.9.16/bin/mvn",
+    "java.configuration.updateBuildConfiguration": "interactive"
+}
