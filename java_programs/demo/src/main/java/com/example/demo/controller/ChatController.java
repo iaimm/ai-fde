@@ -15,12 +15,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import com.example.demo.tools.NoteRetriever;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @RestController
 public class ChatController {
+
+    private final NoteRetriever retriever;
+
+    public ChatController(NoteRetriever retriever) {
+        this.retriever = retriever;
+    }
 
     public record ChatRequest(String question) {}   // Java 21 record：一行顶一个类
 
@@ -65,10 +72,16 @@ public class ChatController {
 
     private void forwardToLlm(String question, SseEmitter emitter) {
         try {
+            var hits = retriever.top3(question);
+            String ctx = java.util.stream.IntStream.range(0, hits.size())
+                .mapToObj(i -> "[" + (i + 1) + "] " + hits.get(i).src() + ": " + hits.get(i).text())
+                .collect(java.util.stream.Collectors.joining("\n---\n"));
+
+            String prompt = "基于以下笔记回答问题，回答中用[编号]标注来源：\n" + ctx + "\n\n问题：" + question;
             ObjectNode payload = mapper.createObjectNode();
             payload.put("model", "kimi-k2.6");
             ArrayNode messages = payload.putArray("messages");
-            messages.addObject().put("role", "user").put("content", question);
+            messages.addObject().put("role", "user").put("content", prompt);
             payload.put("stream", true);                       // ← 关键：要流式
 
             HttpRequest request = HttpRequest.newBuilder()

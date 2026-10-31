@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.tools;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class NoteRetriever {
 
-    record Chunk(String src, String text) {}
+    public record Chunk(String src, String text) {}
 
     private final List<Chunk> chunks;
 
