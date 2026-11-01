@@ -19,12 +19,16 @@ public class NoteRetriever {
 
     private final List<Chunk> chunks;
 
-    public NoteRetriever() throws IOException {
-        // 绝对路径更稳：Spring 的工作目录不一定是你想的那个
-        this.chunks = load("/home/wanfch/ai-fde/notes");
+    // 测试专用：同包可见，绕过文件系统
+    public NoteRetriever(List<Chunk> chunks) {
+        this.chunks = chunks;
     }
 
-    private List<Chunk> load(String dir) throws IOException {
+    public NoteRetriever() throws IOException {
+        this(load("/home/wanfch/ai-fde/notes"));
+    }
+
+    private static List<Chunk> load(String dir) throws IOException {
         List<Chunk> all = new ArrayList<>();
         try (Stream<Path> files = Files.list(Path.of(dir))) {
             for (Path f : files.filter(p -> p.toString().endsWith(".md")).toList()) {
