@@ -16,3 +16,5 @@ POST /api/chat　body: {"question":"..."}　→ 纯文本回答
 - [ ] W5 Docker + CI
 
 ![alt text](image.png)
+![alt text](image-1.png)
+![alt text](image-2.png)
