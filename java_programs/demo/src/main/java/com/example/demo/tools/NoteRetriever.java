@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -24,11 +26,17 @@ public class NoteRetriever {
         this.chunks = chunks;
     }
 
-    public NoteRetriever() throws IOException {
-        this(load("/home/wanfch/ai-fde/notes"));
+    @Autowired
+    public NoteRetriever(@Value("${notes.dir:./notes}") String dir) throws IOException {
+        this.chunks = load(dir);
     }
 
     private static List<Chunk> load(String dir) throws IOException {
+        Path path = Path.of(dir);
+        if (!Files.exists(path)) {                        // 目录不存在：空索引启动，不炸
+            System.out.println("[NoteRetriever] 目录不存在，空索引启动: " + dir);
+            return List.of();
+        }
         List<Chunk> all = new ArrayList<>();
         try (Stream<Path> files = Files.list(Path.of(dir))) {
             for (Path f : files.filter(p -> p.toString().endsWith(".md")).toList()) {

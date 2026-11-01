@@ -20,6 +20,5 @@ class NoteRetrieverTest {
 
         assertEquals(3, hits.size());
         assertEquals("c.md", hits.get(0).src());
-        assertEquals(99, hits.size());
     }
 }

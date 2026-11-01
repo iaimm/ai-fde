@@ -1,0 +1,18 @@
+services:
+  backend:
+    build: ./java_programs/demo
+    command: ["java", "-jar", "/app.jar", "--notes.dir=/notes"] 
+    ports:
+      - "8080:8080"
+    environment:
+      - MOONSHOT_API_KEY=${MOONSHOT_API_KEY}
+      - NOTES_DIR=/notes
+    volumes:
+      - ./notes:/notes
+
+  frontend:
+    build: ./vue_programs/frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend

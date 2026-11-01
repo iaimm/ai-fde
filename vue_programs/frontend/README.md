@@ -1,3 +1,4 @@
+![CI](https://github.com/iamm/notes-gpt-frontend/actions/workflows/ci.yml/badge.svg)
 # Vue 3 + Vite
 
 # notes-gpt-frontend
