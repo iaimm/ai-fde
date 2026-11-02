@@ -11,9 +11,9 @@ class NoteRetrieverTest {
     @Test
     void top3_sorted_by_keyword_cores() {
         var retriever = new NoteRetriever(List.of(
-            new NoteRetriever.Chunk("a.md", "线程池的核心参数和拒绝策略"),
-            new NoteRetriever.Chunk("b.md", "虚拟线程适合IO密集场景"),
-            new NoteRetriever.Chunk("c.md", "线程池队列和线程数配置")
+            new NoteRetriever.Chunk("a.md", "线程池的核心参数和拒绝策略", "线程池的核心参数和拒绝策略"),
+            new NoteRetriever.Chunk("b.md", "虚拟线程适合IO密集场景", "线程池的核心参数和拒绝策略"),
+            new NoteRetriever.Chunk("c.md", "线程池队列和线程数配置", "线程池的核心参数和拒绝策略")
         ));
 
         var hits = retriever.top3("线程池配置");

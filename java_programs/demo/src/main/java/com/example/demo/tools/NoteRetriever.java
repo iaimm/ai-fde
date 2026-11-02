@@ -17,7 +17,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class NoteRetriever {
 
-    public record Chunk(String src, String text) {}
+    // 1. Chunk 加一列预存小写
+    public record Chunk(String src, String text, String lower) {};
 
     private final List<Chunk> chunks;
 
@@ -41,9 +42,11 @@ public class NoteRetriever {
         try (Stream<Path> files = Files.list(Path.of(dir))) {
             for (Path f : files.filter(p -> p.toString().endsWith(".md")).toList()) {
                 String text = Files.readString(f);
-                for (int i = 0; i < text.length(); i += 250) {   // 步长250=300-50重叠
-                    all.add(new Chunk(f.getFileName().toString(),
-                            text.substring(i, Math.min(i + 300, text.length()))));
+                for (int i = 0; i < text.length(); i += 250) {  
+                     // 步长250=300-50重叠
+                     String name = f.getFileName().toString();
+                     String textTemp = text.substring(i, Math.min(i + 300, text.length()));
+                    all.add(new Chunk(name, textTemp, textTemp.toLowerCase()));
                 }
             }
         }

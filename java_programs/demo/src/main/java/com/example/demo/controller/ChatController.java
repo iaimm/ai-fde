@@ -71,8 +71,12 @@ public class ChatController {
     }
 
     private void forwardToLlm(String question, SseEmitter emitter) {
+        long totalStart = System.currentTimeMillis();          // 总耗时起点
         try {
+             // ===== 计时 1：检索 =====
+            long searchStart = System.currentTimeMillis();
             var hits = retriever.top3(question);
+            long searchMs = System.currentTimeMillis() - searchStart;
             String ctx = java.util.stream.IntStream.range(0, hits.size())
                 .mapToObj(i -> "[" + (i + 1) + "] " + hits.get(i).src() + ": " + hits.get(i).text())
                 .collect(java.util.stream.Collectors.joining("\n---\n"));
@@ -91,6 +95,8 @@ public class ChatController {
                     .version(HttpClient.Version.HTTP_1_1)      // ← SSE 走 HTTP/1.1，避开 h2 兼容坑
                     .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(payload)))
                     .build();
+              // ===== 计时 1：检索 =====
+            long requestStart = System.currentTimeMillis();
 
             HttpResponse<java.io.InputStream> resp = client.send(
                     request, HttpResponse.BodyHandlers.ofInputStream());
@@ -100,8 +106,12 @@ public class ChatController {
                 emitter.complete();
                 return;
             }
-
+            // ===== 计时 2：TTFT =====
+            long requestTime = System.currentTimeMillis() - requestStart;
+            System.out.println("[PERF] MODEL REQUEST=" + requestTime + "ms");
+            boolean firstToken = true;                          // 首 token 旗标
             // 逐行读 kimi 的 SSE 流，剥 data: 前缀，转给前端
+            long readStart = System.currentTimeMillis();
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(resp.body()))) {
                 String line;
@@ -113,11 +123,21 @@ public class ChatController {
                             .path("choices").get(0)
                             .path("delta").path("content").asText("");
                     if (!delta.isEmpty()) {
+                        if (firstToken) {
+                            // ===== 计时 2：TTFT =====
+                            long ttftMs = System.currentTimeMillis() - totalStart;
+                            System.out.println("[PERF] TTFT=" + ttftMs + "ms");
+                            firstToken = false;
+                        }
                         emitter.send(mapper.writeValueAsString(delta));                   // 收到一个字就发一个字
                     }
                 }
             }
+            long readTotal = System.currentTimeMillis() - readStart;
+            System.out.println("[PERF] READER REQUEST=" + readTotal + "ms");
             emitter.complete();                                // 流正常结束，关门
+            long totalMs = System.currentTimeMillis() - totalStart;   // ===== 计时 3：总耗时 =====
+            System.out.printf("[PERF] 检索=%dms | TTFT=%dms | 总耗时=%dms%n", searchMs, totalMs, totalMs);
         } catch (Exception e) {
             emitter.completeWithError(e);                      // 异常也要关门
         }
