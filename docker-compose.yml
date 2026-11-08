@@ -16,3 +16,19 @@ services:
       - "5173:80"
     depends_on:
       - backend
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./java_programs/demo/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./java_programs/demo/alerts.yml:/etc/prometheus/alerts.yml
+
+  grafana:
+      image: grafana/grafana:latest
+      ports:
+        - "3000:3000"
+      depends_on:
+        - prometheus
+
+  

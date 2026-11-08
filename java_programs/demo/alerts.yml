@@ -1,0 +1,11 @@
+groups:
+  - name: notes-gpt
+    rules:
+      - alert: BackendDown
+        expr: up{job="notes-gpt"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "后端挂了"
+          description: "notes-gpt 后端连续 1 分钟不可达"

@@ -10,12 +10,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.example.demo.controller.ChatController;
+
 @Component
 public class NoteRetriever {
+
+    private static final Logger log = LoggerFactory.getLogger(NoteRetriever.class);
 
     // 1. Chunk 加一列预存小写
     public record Chunk(String src, String text, String lower) {};
@@ -35,7 +42,7 @@ public class NoteRetriever {
     private static List<Chunk> load(String dir) throws IOException {
         Path path = Path.of(dir);
         if (!Files.exists(path)) {                        // 目录不存在：空索引启动，不炸
-            System.out.println("[NoteRetriever] 目录不存在，空索引启动: " + dir);
+            log.info("[NoteRetriever] 目录不存在，空索引启动: " + dir);
             return List.of();
         }
         List<Chunk> all = new ArrayList<>();
