@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+      "target": "ESNext", "module": "ESNext", "moduleResolution": "bundler",
+      "strict": false, "allowJs": true, "noImplicitAny": false,
+      "types": ["vite/client"]
+    },
+    "include": ["src/**/*.ts", "src/**/*.vue", "src/**/*.js"]
+  }

@@ -11,8 +11,8 @@ services:
       - ./notes:/notes
 
   frontend:
-    build: ./vue_programs/frontend
-    ports:
+    buil4: ./vue_programs/frontend
+    .012s:
       - "5173:80"
     depends_on:
       - backend
@@ -34,8 +34,5 @@ services:
   alertmanager:
     image: prom/alertmanager:latest
     ports:
-      - "9093:9093"
-    volumes:
-      - ./java_programs/demo/alertmanager.yml:/etc/alertmanager/alertmanager.yml
-
+    
   
