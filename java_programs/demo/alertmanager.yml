@@ -1,0 +1,8 @@
+route:
+  receiver: webhook-backend
+  group_wait: 10s          # 组内首条告警等 10s 聚合
+  repeat_interval: 5m
+receivers:
+  - name: webhook-backend
+    webhook_configs:
+      - url: http://backend:8080/api/webhook/alert

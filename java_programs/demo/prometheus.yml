@@ -1,5 +1,9 @@
 rule_files:
   - "alerts.yml"
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
 scrape_configs:
     - job_name: 'notes-gpt'
       metrics_path: '/actuator/prometheus'

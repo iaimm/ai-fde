@@ -31,4 +31,11 @@ services:
       depends_on:
         - prometheus
 
+  alertmanager:
+    image: prom/alertmanager:latest
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./java_programs/demo/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+
   
